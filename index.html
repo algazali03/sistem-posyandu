@@ -1328,8 +1328,7 @@
                   Admin / Bidan</label
                 >
                 <label
-                  ><input type="radio" name="role" value="user" /> 👤 Orang
-                  Tua</label
+                  ><input type="radio" name="role" value="user" /> 👤 Pasien</label
                 >
               </div>
             </div>
@@ -1340,7 +1339,7 @@
             <div class="login-hint" style="margin-top: 16px">
               <strong>💡 Informasi Login</strong>
               Admin/Bidan: gunakan akun Supabase Auth.<br />
-              Orang Tua: email + NIK Ibu sebagai password.
+              Pasien: email + NIK sebagai password.
             </div>
             <div class="login-switch">
               Belum punya akun?
@@ -1353,16 +1352,16 @@
             <!-- Form daftar -->
             <div id="reg-form">
               <div class="lf-group">
-                <label>Nama Ibu / Wali *</label>
+                <label>Nama Pasien / Wali *</label>
                 <input
                   type="text"
                   id="reg-nama"
-                  placeholder="Nama lengkap ibu atau wali..."
+                  placeholder="Nama lengkap pasien atau wali..."
                 />
               </div>
               <div class="lf-group">
                 <label
-                  >NIK Ibu *
+                  >NIK Pasien *
                   <span style="font-weight: 400; color: var(--gray-400)"
                     >(digunakan sebagai password)</span
                   ></label
@@ -1398,9 +1397,9 @@
               <div class="login-err" id="reg-err"></div>
               <div class="login-hint" style="margin-top: 16px">
                 <strong>ℹ️ Informasi Penting</strong>
-                NIK Ibu akan digunakan sebagai <strong>password</strong> untuk
+                NIK Pasien akan digunakan sebagai <strong>password</strong> untuk
                 masuk. Simpan baik-baik!<br />
-                Akun perlu diverifikasi admin sebelum bisa mengakses data anak.
+                Akun perlu diverifikasi admin sebelum bisa mengakses data pasien.
               </div>
             </div>
 
@@ -1412,7 +1411,7 @@
               <div class="rs-info">
                 <strong>📋 Informasi Login Anda:</strong>
                 Email: <strong id="rs-email">-</strong><br />
-                Password: <strong>NIK Ibu yang Anda daftarkan</strong
+                Password: <strong>NIK Pasien yang Anda daftarkan</strong
                 ><br /><br />
                 Silakan login sekarang menggunakan tab <strong>Masuk</strong>.
               </div>
@@ -1581,7 +1580,7 @@
         <div class="halaman" id="hal-posyandu">
           <div class="page-header">
             <h1>📍 Data Posyandu</h1>
-            <p>3 unit posyandu aktif melayani masyarakat.</p>
+            <p>Unit posyandu aktif — lengkap dengan lokasi & integrasi Google Maps.</p>
           </div>
           <div class="grid3" id="posyandu-cards"></div>
         </div>
@@ -1752,7 +1751,7 @@
                 loadUsers();
               "
             >
-              👥 Kelola User
+              👥 Kelola Pasien
             </button>
           </div>
 
@@ -1932,8 +1931,8 @@
                 margin-bottom: 14px;
               "
             >
-              *Data fisik akan disimpan di tabel riwayat_imunisasi sebagai
-              pengukuran awal.
+              *Data fisik akan disimpan langsung di data anak dan otomatis
+              tercatat di riwayat pengukuran.
             </p>
             <button class="btn btn-primary" onclick="simpanAnak()">
               💾 Simpan Data Anak
@@ -1942,7 +1941,7 @@
 
           <!-- Tab: Kelola User -->
           <div id="at-users" class="form-section" style="display: none">
-            <h4>👥 Kelola Akun Orang Tua</h4>
+            <h4>👥 Kelola Akun Pasien</h4>
             <p
               style="
                 font-size: 13px;
@@ -1950,7 +1949,7 @@
                 margin-bottom: 14px;
               "
             >
-              Daftar semua orang tua yang sudah mendaftar. Anda bisa melihat
+              Daftar semua pasien yang sudah mendaftar. Anda bisa melihat
               detail atau menghapus akun.
             </p>
             <div class="search-row" style="margin-bottom: 14px">
@@ -1965,7 +1964,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Nama Ibu</th>
+                    <th>Nama Pasien</th>
                     <th>Email</th>
                     <th>No. HP</th>
                     <th>Aksi</th>
@@ -2197,11 +2196,11 @@
               .single();
             if (error || !data)
               throw new Error(
-                "Email tidak ditemukan sebagai orang tua terdaftar.",
+                "Email tidak ditemukan sebagai pasien terdaftar.",
               );
             if (pass !== data.nik_ibu)
               throw new Error(
-                "Password salah. Gunakan NIK Ibu sebagai password.",
+                "Password salah. Gunakan NIK Anda sebagai password.",
               );
             isAdmin = false;
             currentUser = {
@@ -2239,7 +2238,7 @@
           .toUpperCase();
         document.getElementById("sb-role").textContent = isAdmin
           ? "Administrator / Bidan"
-          : "Orang Tua";
+          : "Pasien";
 
         if (isAdmin) {
           document.getElementById("app").classList.add("admin-mode");
@@ -2333,13 +2332,21 @@
           colors = ["#EEF2FF", "#ECFDF5", "#FFFBEB"];
         document.getElementById("posyandu-beranda").innerHTML = data
           .map(
-            (p, i) => `
+            (p, i) => {
+              const mapsUrl = (p.latitude && p.longitude)
+                ? `https://www.google.com/maps?q=${p.latitude},${p.longitude}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((p.nama_posyandu || '') + ' ' + (p.alamat_posyandu || ''))}`;
+              return `
     <div class="p-card">
       <div class="p-card-icon" style="background:${colors[i] || "#EEF2FF"}">${icons[i] || "🏥"}</div>
       <h3>${p.nama_posyandu}</h3>
       <div class="pmeta">📍 ${p.alamat_posyandu || "-"}<br>👤 ${p.nama_ketua_kader || "-"}</div>
-      <span class="badge b-green">✅ Aktif</span>
-    </div>`,
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <span class="badge b-green">✅ Aktif</span>
+        <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-xs" style="background:#e8f5e9;color:#1b5e20;border:1.5px solid #a5d6a7;text-decoration:none;">🗺️ Buka Maps</a>
+      </div>
+    </div>`;
+            }
           )
           .join("");
       }
@@ -2355,19 +2362,78 @@
         }
         el.innerHTML = data
           .map(
-            (p, i) => `
-    <div class="p-card">
+            (p, i) => {
+              const mapsUrl = (p.latitude && p.longitude)
+                ? `https://www.google.com/maps?q=${p.latitude},${p.longitude}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((p.nama_posyandu || '') + ' ' + (p.alamat_posyandu || ''))}`;
+              const embedUrl = (p.latitude && p.longitude)
+                ? `https://maps.google.com/maps?q=${p.latitude},${p.longitude}&z=16&output=embed`
+                : `https://maps.google.com/maps?q=${encodeURIComponent((p.nama_posyandu || '') + ' ' + (p.alamat_posyandu || ''))}&output=embed`;
+              const adminEdit = isAdmin ? `
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100)">
+                <div style="font-size:11px;font-weight:700;color:var(--gray-500);margin-bottom:8px;">⚙️ Update Lokasi (Admin)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+                  <input type="number" step="0.000001" placeholder="Latitude (cth: -5.1234)" id="lat-${p.id_posyandu}" value="${p.latitude || ''}" style="padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray-200)'" />
+                  <input type="number" step="0.000001" placeholder="Longitude (cth: 119.5678)" id="lng-${p.id_posyandu}" value="${p.longitude || ''}" style="padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray-200)'" />
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-primary btn-xs" onclick="updateLokasi(${p.id_posyandu})">💾 Simpan Lokasi</button>
+                  <button class="btn btn-ghost btn-xs" onclick="detectLokasi(${p.id_posyandu})">📡 Gunakan GPS</button>
+                </div>
+              </div>` : '';
+              return `
+    <div class="p-card" style="cursor:default">
       <div class="p-card-icon" style="background:${colors[i] || "#EEF2FF"}">${icons[i] || "🏥"}</div>
       <h3>${p.nama_posyandu}</h3>
       <div class="pmeta">
         📍 ${p.alamat_posyandu || "Alamat belum diisi"}<br>
         👤 Ketua: <strong>${p.nama_ketua_kader || "-"}</strong><br>
         🆔 ID: #${p.id_posyandu}
+        ${p.latitude && p.longitude ? `<br>🌐 <span style="font-size:11px;color:var(--gray-500)">${parseFloat(p.latitude).toFixed(6)}, ${parseFloat(p.longitude).toFixed(6)}</span>` : ''}
       </div>
-      <span class="badge b-green">✅ Aktif</span>
-    </div>`,
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <span class="badge b-green">✅ Aktif</span>
+        <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-xs" style="background:#e8f5e9;color:#1b5e20;border:1.5px solid #a5d6a7;text-decoration:none;">🗺️ Buka Google Maps</a>
+        <button class="btn btn-xs btn-ghost" onclick="togglePeta('map-${p.id_posyandu}')">🔍 Lihat Peta</button>
+      </div>
+      <div id="map-${p.id_posyandu}" style="display:none;margin-top:12px;border-radius:10px;overflow:hidden;border:1.5px solid var(--gray-200);">
+        <iframe src="${embedUrl}" width="100%" height="200" style="border:0;display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      ${adminEdit}
+    </div>`;
+            }
           )
           .join("");
+      }
+
+      function togglePeta(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+      }
+
+      async function updateLokasi(id) {
+        const lat = document.getElementById('lat-' + id)?.value;
+        const lng = document.getElementById('lng-' + id)?.value;
+        if (!lat || !lng) { showToast('⚠️ Isi latitude dan longitude', 'warn'); return; }
+        const { error } = await sb.from('posyandu').update({ latitude: parseFloat(lat), longitude: parseFloat(lng) }).eq('id_posyandu', id);
+        if (error) { showToast('❌ Gagal update: ' + error.message, 'err'); return; }
+        showToast('✅ Lokasi berhasil disimpan!', 'ok');
+        await Promise.all([loadPosyanduCards(), loadPosyanduBeranda()]);
+      }
+
+      function detectLokasi(id) {
+        if (!navigator.geolocation) { showToast('❌ GPS tidak didukung browser ini', 'err'); return; }
+        showToast('📡 Mendeteksi lokasi...', '');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const latEl = document.getElementById('lat-' + id);
+            const lngEl = document.getElementById('lng-' + id);
+            if (latEl) latEl.value = pos.coords.latitude.toFixed(6);
+            if (lngEl) lngEl.value = pos.coords.longitude.toFixed(6);
+            showToast('✅ Lokasi GPS terdeteksi! Klik Simpan untuk menyimpan.', 'ok');
+          },
+          (err) => { showToast('❌ Gagal deteksi GPS: ' + err.message, 'err'); }
+        );
       }
 
       async function loadImunBeranda() {
@@ -2429,28 +2495,10 @@
         const { data } = await sb
           .from("anak")
           .select(
-            "id_anak,nama_anak,tanggal_lahir,jenis_kelamin,nik_anak,posyandu(id_posyandu,nama_posyandu),orang_tua(nama_ibu)",
+            "id_anak,nama_anak,tanggal_lahir,jenis_kelamin,nik_anak,berat_badan,tinggi_badan,posyandu(id_posyandu,nama_posyandu),orang_tua(nama_ibu)",
           )
           .order("nama_anak");
         allAnak = data || [];
-
-        const { data: riwayat } = await sb
-          .from("riwayat_imunisasi")
-          .select(
-            "berat_badan,tinggi_badan,tanggal_aktual,jadwal_imunisasi(id_anak)",
-          )
-          .order("tanggal_aktual", { ascending: false });
-
-        const riwayatMap = {};
-        (riwayat || []).forEach((r) => {
-          const idAnak = r.jadwal_imunisasi?.id_anak;
-          if (idAnak && !riwayatMap[idAnak]) riwayatMap[idAnak] = r;
-        });
-
-        allAnak = allAnak.map((a) => ({
-          ...a,
-          fisik: riwayatMap[a.id_anak] || null,
-        }));
 
         const sel = document.getElementById("filter-pos-anak");
         const existing = Array.from(sel.options).map((o) => o.value);
@@ -2487,8 +2535,8 @@
       <td>${a.jenis_kelamin === "L" ? '<span class="badge b-blue">👦 L</span>' : '<span class="badge b-pink">👧 P</span>'}</td>
       <td>${hitungUsia(a.tanggal_lahir)}</td>
       <td>${fmtTgl(a.tanggal_lahir)}</td>
-      <td>${a.fisik?.berat_badan != null ? "<strong>" + a.fisik.berat_badan + "</strong> kg" : '<span style="color:#ccc">-</span>'}</td>
-      <td>${a.fisik?.tinggi_badan != null ? "<strong>" + a.fisik.tinggi_badan + "</strong> cm" : '<span style="color:#ccc">-</span>'}</td>
+      <td>${a.berat_badan != null ? "<strong>" + a.berat_badan + "</strong> kg" : '<span style="color:#ccc">-</span>'}</td>
+      <td>${a.tinggi_badan != null ? "<strong>" + a.tinggi_badan + "</strong> cm" : '<span style="color:#ccc">-</span>'}</td>
       <td>${a.orang_tua?.nama_ibu || "-"}</td>
       <td>${a.posyandu?.nama_posyandu || "-"}</td>
       <td class="admin-only"><button class="btn btn-danger btn-xs" onclick="hapusAnak(${a.id_anak})">🗑️</button></td>
@@ -2697,7 +2745,7 @@
         const tbody = document.getElementById("users-tbody");
         if (!data.length) {
           tbody.innerHTML =
-            '<tr><td colspan="6" class="kosong">Belum ada orang tua terdaftar.</td></tr>';
+            '<tr><td colspan="6" class="kosong">Belum ada pasien terdaftar.</td></tr>';
           return;
         }
         tbody.innerHTML = data
@@ -2732,7 +2780,7 @@
         }
         if (
           !confirm(
-            `Yakin hapus akun "${nama}"?\nSemua data anak yang terhubung mungkin ikut terpengaruh.`,
+            `Yakin hapus akun pasien "${nama}"?\nSemua data yang terhubung mungkin ikut terpengaruh.`,
           )
         )
           return;
@@ -2744,7 +2792,7 @@
           showToast("❌ Gagal: " + error.message, "err");
           return;
         }
-        showToast("✅ Akun " + nama + " berhasil dihapus", "ok");
+        showToast("✅ Akun pasien " + nama + " berhasil dihapus", "ok");
         await loadUsers();
       }
 
@@ -2901,6 +2949,8 @@
               jenis_kelamin: jk,
               id_posyandu: parseInt(pos),
               id_orang_tua: parseInt(ot),
+              berat_badan: bb,
+              tinggi_badan: tb,
             },
           ])
           .select();
@@ -2909,6 +2959,7 @@
           showToast("❌ Gagal simpan anak: " + error.message, "err");
           return;
         }
+
         showToast("✅ Data anak berhasil ditambahkan!", "ok");
 
         ["ai-anama", "ai-anik", "ai-atgl", "ai-bb", "ai-tb"].forEach(
